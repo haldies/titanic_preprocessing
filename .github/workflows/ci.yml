@@ -29,10 +29,17 @@ jobs:
         cd preprocessing
         python automate_Haldies.py
 
-    - name: Upload preprocessed data as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: preprocessed-data
-        path: |
-          preprocessing/titanic_preprocessed_train.csv
-          preprocessing/titanic_preprocessed_test.csv
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+
+    - name: Commit and push processed data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git add . || echo "Nothing to add"
+        git diff --cached --quiet && echo "No changes to commit" || (
+          git commit -m "Update processed dataset by GitHub Actions"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
+        )
